@@ -16,7 +16,7 @@ class Server():
         self.db_name = db_name
         self.tb_name = tb_name
     
-        self.max_player = 3
+        self.max_player = 2
         self.server_state_dict = {'OK':0, 'notNStart':1, 'notNExit':2}
         self.server_state = self.server_state_dict['notNStart']
         self.play_state = False
@@ -42,7 +42,6 @@ class Server():
         
     def recv(self):
         packet, self.addr = self.sock.recvfrom(1024)
-        print "SERVER RECV : " + packet
         if packet.find("tile:") != -1:
             first_index = packet.find(":") + 1
             new_packet = packet[first_index:]
@@ -61,7 +60,6 @@ class Server():
             self.counter.stop()
         else :
             ls_client = packet.split(",")
-            print ls_client
             self.db.insert_data(self.tb_name,
                                 ls_client[self.id],
                                 ls_client[self.type],
@@ -85,7 +83,6 @@ class Server():
                 packet += str(int(self.counter.get_time()))
                 packet += "/"
             packet = packet[:-1]
-        print "SERVER SEND : " + packet
         self.sock.sendto(packet, self.addr)
     
     def update(self):
@@ -110,13 +107,11 @@ class Server():
                 self.recv()
                 self.send()
                 self.update()
-                if self.play_state :
-                    self.counter.update()
             except KeyboardInterrupt:
                 self.db.drop_db(self.db_name)
                 quit()
         self.db.drop_db(self.tb_name)
         quit()
         
-server = Server("127.0.0.1", 8000, "root", "tran7aado83f", "TEST_DB", "TEST_TB")
+server = Server("127.0.0.1", 8000, "root", "yourname", "GAME_DB", "GAME_TB")
 server.loop()

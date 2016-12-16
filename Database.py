@@ -105,7 +105,5 @@ class Database():
     def get_data(self, tb_name):
         return self.get_list_data(tb_name)
     
-db = Database("localhost", "root", "tran7aado83f")
-db.create_db("OPW")
-db.create_tb("ASD")
-db.delete_data("ASD", "Nop")
+    def close(self):
+        self.db.close()

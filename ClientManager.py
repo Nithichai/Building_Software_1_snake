@@ -14,12 +14,10 @@ class ClientManager():
         return packet[:-1]
     
     def send(self, data):
-        print "CLIENT SEND:" + data
         self.sock.sendto(data, (self.host, self.port))
     
     def recv(self):
         packet, addr = self.sock.recvfrom(1024)
-        print "CLIENT  RECV:" + packet
         return packet, addr
     
     def close(self):

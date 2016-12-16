@@ -8,7 +8,7 @@ const int joyPin[analogDataSize] = {A0, A1};       // Joystick pin
 
 int prevState[swSize] = {HIGH, HIGH, HIGH, HIGH};    // Previous state of switch
 int currState[swSize] = {HIGH, HIGH, HIGH, HIGH};    // Current state of switch
-const int keyboardState[swSize] = {'c', 'x', ' ', ' '};   // Switch to Button state array
+const int keyboardState[swSize] = {'c', 'x', 'x', ' '};   // Switch to Button state array
 unsigned long lastDebonceTime[swSize];   // Save time of debounce after pressed
 unsigned long debounceDelay = 10;   // Delay debounce
 

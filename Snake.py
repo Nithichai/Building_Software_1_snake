@@ -33,40 +33,72 @@ class Snake(Object) :
         self.run_use_counter.restart()
         
         self.dead_counter = CounterTime()
-        self.dead_delay = 10
+        self.dead_delay = 3
         
-        self.blink_counter = CounterTime()
-        self.blink_delay = 3
+        self.prepare_walk_counter = CounterTime()
+        self.prepare_walk_delay = 3
+    
+    def prepare_walk(self, number_body):
+        self.x_pos = [self.get_x() - (number_body - 1 - i) * self.get_width() for i in range(number_body)]
+        self.y_pos = [self.get_y()] * number_body
+        self.dx = 0
+        self.dy = 0
 
     def update(self) :
-        self.snake_collision(len(self.x_pos) - 1)
-        if self.dead_counter.compare(self.dead_delay) :
-            self.state = 'move'
-            self.dead_counter.stop()
-            self.blink_counter.restart()
-        if self.running_counter.compare(self.running_delay) and self.run_use_counter.get_stop():
-            self.snake_walk_delay = 0.06
+        print self.state
+        if self.state == 'move' :
+            self.snake_collision(len(self.x_pos) - 1)
+            if self.running_counter.compare(self.running_delay) and self.run_use_counter.get_stop():
+                self.snake_walk_delay = 0.06
+                self.running_counter.stop()
+                self.run_use_counter.restart()
+            if self.walk_counter.compare(self.snake_walk_delay) :
+                self.shift_body(len(self.x_pos) - 1)
+                self.walk_snake()
+                self.walk_counter.restart()
+                self.x = self.x_pos[-1]
+                self.y = self.y_pos[-1]
+                self.snake_check_dead(len(self.x_pos)-2)
+            self.walk_counter.update()
+            self.slide_counter.update()
+            self.running_counter.update()
+            self.run_use_counter.update()
+        elif self.state == 'prepare':
+            self.prepare_walk_counter.update()
+            if self.prepare_walk_counter.compare(self.prepare_walk_delay):
+                self.state = 'move'
+                self.prepare_walk_counter.stop()
+                self.dx = self.get_width()
+                self.dy = 0
+                self.move = 'right'
+                self.walk_counter.restart()
+                self.slide_counter.restart()
+                self.run_use_counter.restart()
+        elif self.state == 'dead':
+            print self.dead_counter.get_time()
+            self.dead_counter.update()
+            self.walk_counter.stop()
+            self.slide_counter.stop()
             self.running_counter.stop()
-            self.run_use_counter.restart()
-        if self.walk_counter.compare(self.snake_walk_delay) :
-            self.shift_body(len(self.x_pos) - 1)
-            self.walk_snake()
-            self.walk_counter.restart()
-            self.x = self.x_pos[-1]
-            self.y = self.y_pos[-1]
-        self.walk_counter.update()
-        self.slide_counter.update()
-        self.running_counter.update()
-        self.run_use_counter.update()
-        self.dead_counter.update()
-        
+            self.run_use_counter.stop()
+            if self.dead_counter.compare(self.dead_delay) :
+                self.state = 'prepare'
+                self.prepare_walk_counter.restart()
+                self.dead_counter.stop()
+                self.prepare_walk(3)
+            
     
     def render(self, game_display, i) :
-        if i < 0 :
-            return
-        pygame.draw.rect(game_display, self.color, [int(self.x_pos[len(self.x_pos)-1-i]), \
-                                                    int(self.y_pos[len(self.y_pos)-1-i]), \
-                                                    int(self.get_width()), int(self.get_height())])
+        if i < 0 : return
+        if self.state == 'move' :
+            pygame.draw.rect(game_display, self.color, [int(self.x_pos[len(self.x_pos)-1-i]), \
+                                                        int(self.y_pos[len(self.y_pos)-1-i]), \
+                                                        int(self.get_width()), int(self.get_height())])
+        elif self.state == 'prepare':
+            if self.prepare_walk_counter.get_time() * 200 % 200 >= 100 :
+                pygame.draw.rect(game_display, self.color, [int(self.x_pos[len(self.x_pos)-1-i]), \
+                                                        int(self.y_pos[len(self.y_pos)-1-i]), \
+                                                        int(self.get_width()), int(self.get_height())])
         self.render(game_display, i-1)
                 
     def snake_collision (self, i):
@@ -76,7 +108,7 @@ class Snake(Object) :
             self.x_pos[i] = self.tile_mng.get_wframe() - self.get_width()
         elif self.x_pos[i] >= self.tile_mng.get_wframe():
             self.x_pos[i] = 0
-        elif self.y_pos[i] < 0 :
+        if self.y_pos[i] < 0 :
             self.y_pos[i] = self.tile_mng.get_hframe() - self.get_height()
         elif self.y_pos[i] >= self.tile_mng.get_hframe():
             self.y_pos[i] = 0
@@ -123,7 +155,16 @@ class Snake(Object) :
             self.snake_walk_delay = 0
             self.run_use_counter.stop()
             self.running_counter.restart()
-                
+    
+    def snake_check_dead(self, index):
+        if index < 0 : return
+        if self.x_pos[-1] == self.x_pos[index] and self.y_pos[-1] == self.y_pos[index]:
+            self.state = 'dead'
+            self.dead_counter.restart()
+            return
+        self.snake_check_dead(index-1)
+        
+            
     def get_id(self):
         return self._id
     
@@ -156,6 +197,15 @@ class Snake(Object) :
     
     def get_run_use_delay(self):
         return self.run_use_delay
+    
+    def get_dead_ellapse(self):
+        return self.dead_counter.get_time()
+    
+    def get_dead_delay(self):
+        return self.dead_delay
+    
+    def get_state(self):
+        return self.state
     
     def set_score(self):
         self.score = score

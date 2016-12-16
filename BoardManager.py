@@ -61,7 +61,7 @@ class BoardManager():
         y_pos_ls = [int(self.snake.get_y_pos()[i] / self.tile_mng.get_sizeh_tile ())for i in range(self.snake.get_number_body())]
         x_pos_n = self.client.pos_pattern(x_pos_ls)
         y_pos_n = self.client.pos_pattern(y_pos_ls)
-        pattern = self.client.set_pattern(self.snake.get_id(), [self.snake.get_type(), x_pos_n, y_pos_n, self.score, 0])
+        pattern = self.client.set_pattern(self.snake.get_id(), [self.snake.get_type(), x_pos_n, y_pos_n, self.snake.get_score(), 0])
         
         if self.client_state == self.client_state_dict['OK']:
             self.snake.snake_eat_apple(self.apple)
@@ -94,14 +94,17 @@ class BoardManager():
     def render(self):  # Render board
         game_display.fill(white)  # Background
         if self.client_state == self.client_state_dict['OK']:
-            self.apple.render(game_display)   # Render Apple
-            self.snake.render(game_display, self.snake.get_number_body()-1)
-            for key in self.enemy_dict:
-                self.enemy_dict[key].render(game_display, self.enemy_dict[key].get_number_body()-1)
-            self.hud.time_hud(game_display, self.game_time, width / 2, height * 0.05)
-            self.hud.score_hud(game_display, self.snake.get_score(), width * 0.8, height * 0.05)
-            self.hud.gauge_hud(game_display, min(self.snake.get_slide_ellapse() / self.snake.get_slide_delay(), 1), 0.6 * width, 0.95 * height, 0.4 * width, 0.01 * height)
-            self.hud.gauge_hud(game_display, min(self.snake.get_run_use_ellapse() / self.snake.get_run_use_delay(), 1), 0.6 * width, 0.97 * height, 0.4 * width, 0.01 * height)
+            if self.snake.state == 'dead' :
+                self.hud.dead_hud(game_display, self.snake.get_dead_ellapse(), self.snake.get_dead_delay(), width / 2, height / 2, width / 3, height / 3)
+            else :
+                self.apple.render(game_display)   # Render Apple
+                self.snake.render(game_display, self.snake.get_number_body()-1)
+                for key in self.enemy_dict:
+                    self.enemy_dict[key].render(game_display, self.enemy_dict[key].get_number_body()-1)
+                self.hud.time_hud(game_display, self.game_time, width / 2, height * 0.05)
+                self.hud.score_hud(game_display, self.snake.get_score(), width * 0.8, height * 0.05)
+                self.hud.gauge_hud(game_display, min(self.snake.get_slide_ellapse() / self.snake.get_slide_delay(), 1), 0.6 * width, 0.95 * height, 0.4 * width, 0.02 * height)
+                self.hud.gauge_hud(game_display, min(self.snake.get_run_use_ellapse() / self.snake.get_run_use_delay(), 1), 0.6 * width, 0.97 * height, 0.4 * width, 0.02 * height)
         pygame.display.update()  # Update display
         
     def loop(self):  # Loop to play always
@@ -136,5 +139,5 @@ game_display = pygame.display.set_mode([width, height])  # Start Frame
 pygame.display.set_caption("SNAKEGAME_2D")  # Set caption
 clock = pygame.time.Clock()  # Set counter
 
-board_mng = BoardManager(30, 30)  # Setup BoardManager
+board_mng = BoardManager(8, 8)  # Setup BoardManager
 board_mng.loop()   # Loop BoardManager

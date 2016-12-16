@@ -4,7 +4,7 @@ int w = 8;
 int h = 8;
 int wGame = 8;
 int hGame = 8;
-int data[8][8];
+int data[16][8];
 int readState = 0, intoDisplay = 1, showState = 2 ;
 int state = showState;
 byte firstByte = 255;
@@ -15,6 +15,8 @@ int numPixel = w * h;
 int red = 1;
 int green = 2;
 int blue = 3;
+
+int colorindex = red;
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(numPixel, pinStrip, NEO_GRB + NEO_KHZ800);
 
@@ -57,12 +59,12 @@ void readFromGame() {
     byte by = Serial.read();
     int x = int(bx - 65) * w / wGame;
     int y = int(by - 65) * h / hGame;
-    data[y][x] = green;
+    data[y][x] = ++colorindex;
   } else if (b != 255) {
     byte by = Serial.read();
     int x = int(b - 65) * w / wGame;
     int y = int(by - 65) * h / hGame;
-    data[y][x] = green;
+    data[y][x] = colorindex;
   } else if (b == 255) {
     state = intoDisplay;
   }
@@ -85,6 +87,8 @@ void showGame() {
           pixels.setPixelColor(index_led, pixels.Color(100, 0, 0));
         } else if (data[i][w - j - 1] == green) {
           pixels.setPixelColor(index_led, pixels.Color(0, 100, 0));
+        } else if (data[i][w - j - 1] == blue) {
+          pixels.setPixelColor(index_led, pixels.Color(0, 0, 100));
         } else {
           pixels.setPixelColor(index_led, pixels.Color(0, 0, 0));
         }
@@ -99,6 +103,8 @@ void showGame() {
           pixels.setPixelColor(index_led, pixels.Color(100, 0, 0));
         } else if (data[i][j] == green) {
           pixels.setPixelColor(index_led, pixels.Color(0, 100, 0));
+        } else if (data[i][j] == blue) {
+          pixels.setPixelColor(index_led, pixels.Color(0, 0, 100));
         } else {
           pixels.setPixelColor(index_led, pixels.Color(0, 0, 0));
         }
@@ -119,6 +125,7 @@ void checkToRead() {
     state = readState;
     resetData();
     firstByte = b;
+    colorindex = red;
   }
 }
 

@@ -78,7 +78,7 @@ class BoardManager():
             self.client_state = self.client_state_dict['notNExit']
         else :
             self.client_state = self.client_state_dict['OK']
-            split_list = self.client.split(data)    
+            split_list = self.client.split(data)
             for ls in split_list :
                 self.game_time = int(ls[self.t])
                 if ls[self.id] == "*" :
@@ -108,13 +108,13 @@ class BoardManager():
         pygame.display.update()  # Update display
         
     def loop(self):  # Loop to play always
-        self.client = ClientManager("localhost", 8000)
+        self.client = ClientManager("192.168.99.50", 8000)
         packet = str("tile:" + str(width) + "," + str(height) + "," +  str(self.nw_tile) + "," +  str(self.nh_tile))
         self.client.send(packet)
         self.client.close()
         while True :
             try:
-                self.client = ClientManager("localhost", 8000)
+                self.client = ClientManager("192.168.99.50", 8000)
                 self.update()  # Update program
                 self.render()  # Render program
                 self.client.close()

@@ -16,7 +16,7 @@ class Server():
         self.db_name = db_name
         self.tb_name = tb_name
     
-        self.max_player = 2
+        self.max_player = 3
         self.server_state_dict = {'OK':0, 'notNStart':1, 'notNExit':2}
         self.server_state = self.server_state_dict['notNStart']
         self.play_state = False
@@ -113,5 +113,5 @@ class Server():
         self.db.drop_db(self.tb_name)
         quit()
         
-server = Server("127.0.0.1", 8000, "root", "yourname", "GAME_DB", "GAME_TB")
+server = Server("192.168.99.50", 8000, "root", "yourname", "GAME_DB", "GAME_TB")
 server.loop()

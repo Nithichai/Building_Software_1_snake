@@ -8,10 +8,10 @@ class TileManager():
         self.sizew_tile = self.width / self.nw_tile     # width of tile
         self.sizeh_tile = self.height / self.nh_tile    # height of tile
     
-    def get_wframe(self):
+    def get_wframe(self):   # Get width of frame
         return self.width
     
-    def get_hframe(self):
+    def get_hframe(self):   # Get height of frame
         return self.height
         
     def get_nw_tile(self):  # Get nunber of tile (width)

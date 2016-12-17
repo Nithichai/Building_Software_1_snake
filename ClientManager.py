@@ -6,6 +6,7 @@ class ClientManager():
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.settimeout(1)
     
     def set_pattern(self, index, ls_data):
         packet  = str(index) + ","
@@ -17,9 +18,13 @@ class ClientManager():
         self.sock.sendto(data, (self.host, self.port))
     
     def recv(self):
-        packet, addr = self.sock.recvfrom(1024)
-        return packet, addr
-    
+        try :   
+            packet, addr = self.sock.recvfrom(1024)
+            return packet, addr
+        except socket.timeout :
+            print("Error : Client recv timeout")
+            return None, None
+        
     def close(self):
         self.sock.close()
     

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+<canvas id="ctx" width="600" height="600" style="border:1px solid #000000;"></canvas>
+<meta charset="utf-8"/>
+</head>
+<body>
+<script>
+var ctx = document.getElementById("ctx").getContext("2d");      // Start
+var width = 600;    // Width of game
+var height = 600;   // Height of game
+var nTile = 8;      // Number of tile
+var w = width / nTile;  // Width of tile
+var h = height / nTile; // Height of tile
+var FPS = 60;
+
+var playerArray = [];   // Snake's array
+var recvText = "";      // Received data from Ajax
+var apple = null;       // Data of apple
+var time = 0;           // Time of game
+
+var colorPick = ["green", "blue"];     // Snake color list
+var colorIndex = 0;                    // Index of colorPick
+
+db_save_size = 6;   // Size of coloumn of database
+id = 0;    // Index of colomn of  database
+type = 1;
+x = 2;
+y = 3;
+s = 4;
+t = 5;
+
+// Player Class
+Player = function(id, ls_x, ls_y, score, color){
+    this.player = {     // Setting player
+      id:id,
+      ls_x:ls_x,
+      ls_y:ls_y,
+      score:score,
+      color:color
+    };
+    this.render = function() {      // Draw player
+        ctx.save();
+        ctx.fillStyle = color;
+        for(i = 0; i < this.player.ls_x.length; i++)
+            ctx.fillRect(this.player.ls_x[i] * w, this.player.ls_y[i] * h, parseInt(width/nTile), parseInt(height/nTile));
+        ctx.restore();
+    };
+};
+
+Apple = function(id, x, y){
+    this.apple = {      // Setting apple
+      id:id,
+      x:x,
+      y:y,
+    };  
+    this.render = function() {      // Render
+        ctx.save();
+        ctx.fillStyle = "red";
+        ctx.fillRect(this.apple.x * w, this.apple.y * h, width/nTile, height/nTile);
+        ctx.restore();
+    };
+};
+
+score = function(txt, x, y) {   // Score HUD
+    ctx.save();
+    ctx.fillStyle = "black";
+    ctx.fillText(txt, x, y);
+    ctx.restore();
+};
+
+recvData = function() {     // Received data from PHP (Ajax)
+    if (window.XMLHttpRequest) {
+        xmlhttp = new XMLHttpRequest();
+    } else {
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    xmlhttp.open("GET","test.php", true);   // Get data from test.php
+    xmlhttp.send();
+    xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            recvText = this.responseText;
+        }
+    };
+};
+
+// Get text is patterned split to array 
+splitDBTextData = function(text) {
+    var array = [];
+    var recvArrayRow = text.split("/");
+    for(var i = 0; i < recvArrayRow.length-1; i++) {
+        recvArray1D = [];
+        var recvArrayCol = recvArrayRow[i].split(",");
+        for(j = 0; j < recvArrayCol.length-1; j++) {
+            recvArray1D.push(recvArrayCol[j]);
+        }
+        array.push(recvArray1D);
+    }
+    return array;
+};
+
+// Get postion string to array
+splitArrayPos = function(xs, ys) {
+    var arrayX = xs.split("|");
+    var arrayY = ys.split("|");
+    var newX = [], newY = [];
+    for(var i = 0; i < arrayX.length; i++) {
+        newX.push(parseInt(arrayX[i]));
+        newY.push(parseInt(arrayY[i]));
+    }
+    return [newX, newY];
+};
+
+// Find index of player
+indexPlayerID = function(name) {
+    for(var i = 0; i < playerArray.length; i++) {
+        if(playerArray[i].player.id.localeCompare(name) === 0)
+            return i;
+    }
+    return -1;
+};
+
+
+// Update Webapp
+function update() {
+    recvData();
+    var splitArray = splitDBTextData(recvText);
+    for(var i = 0; i < splitArray.length; i++) {
+        if(splitArray[i][type].localeCompare("s") === 0) {  // See snake
+            // Set time, x, y
+            time = parseInt(splitArray[i][t]);
+            var pos = splitArrayPos(splitArray[i][x], splitArray[i][y]);
+            var x_pos = pos[0];
+            var y_pos = pos[1];
+            var index = indexPlayerID(splitArray[i][id]);
+            if (index < 0) {    // New player => Add to snake's array 
+                playerArray.push(new Player(splitArray[i][id], x_pos, y_pos, splitArray[i][s], colorPick[colorIndex]));
+                colorIndex = colorIndex + 1;
+                if(colorIndex >= 2){ // Color's index is more than length of array => set to 0
+                    colorIndex = 0;  
+                }
+            } else {    // Old player => Update player
+                playerArray[index] = new Player(splitArray[i][id], x_pos, y_pos, parseInt(splitArray[i][s]), colorPick[colorIndex]);
+                colorIndex = colorIndex + 1;
+                if(colorIndex >= 2){
+                    colorIndex = 0;  
+                }
+            }
+        } else if (splitArray[i][type].localeCompare("a") === 0) {  // see apple => update apple
+            apple = new Apple(splitArray[i][id], parseInt(splitArray[i][x]), parseInt(splitArray[i][y]));
+        }
+    }
+}
+
+// Render webapp
+function render() {
+    ctx.clearRect(0, 0, width, height);    // Clear all picture
+    for(var i = 0; i < playerArray.length; i++) {   // Draw all player
+        playerArray[i].render();
+        ctx.font = "20px Arial";        // Draw HUD
+        ctx.fillText(playerArray[i].player.id + ":" + playerArray[i].player.score, 500 , 40 + 40 * i);
+    }
+    ctx.font = "30px Arial";        // Draw Time HUD
+    ctx.fillText(time , width  / 2 - 20 , 40);
+    apple.render();     // Draw apple
+}
+
+run = function() {
+    update();       // Update web
+    render();       // Render web
+};
+setInterval(run, 1000 / FPS);   // Set delay of program
+</script>
+</body>
+</html>
